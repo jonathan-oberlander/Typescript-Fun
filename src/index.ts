@@ -230,3 +230,34 @@ type SomeObjectType = {
 
 type KeysOfStatusTypeValues = FilteredKeys<SomeObjectType, Status>;
 type FilteredSomeObjectType = Pick<SomeObjectType, KeysOfStatusTypeValues>;
+
+// Custom Pick -------------------------
+
+type CustomPick<T, K extends keyof T> = {
+  [P in K]: T[P]
+}
+
+type Hope = CustomPick<SomeObjectType, 'key_b'>
+
+// In / Is Type Guards -------------------------
+
+type Fish = { swim: () => void }
+type Bird = { fly: () => void }
+type Human = { swim?: () => void; fly?: () => void };
+
+function move(animal: Fish | Bird | Human) {
+  if ("swim" in animal) {
+      return animal // Fish | Human
+  } else {
+      return animal // Bird | Human
+  }
+}
+
+class PetFish implements Fish { swim() {} }
+class PetBird implements Bird { fly() {} }
+const fish = new PetFish()
+const bird = new PetBird()
+
+// pet is Fish allows TS to know the return type is Fish[]
+const isFish = (pet: Fish | Bird): pet is Fish => 'swim' in pet
+const onlyFishes = [fish, bird].filter(isFish) 
