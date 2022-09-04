@@ -233,31 +233,128 @@ type FilteredSomeObjectType = Pick<SomeObjectType, KeysOfStatusTypeValues>;
 
 // Custom Pick -------------------------
 
+type Cars = {
+  accord: "honda";
+  clio: "renault";
+  fiesta: "ford";
+  punto: "fiat";
+};
+
 type CustomPick<T, K extends keyof T> = {
-  [P in K]: T[P]
-}
+  [P in K]: T[P];
+};
 
-type Hope = CustomPick<SomeObjectType, 'key_b'>
+type LatinCars = CustomPick<Cars, "clio" | "punto">;
 
-// In / Is Type Guards -------------------------
+// Narrowing with in -------------------------
 
-type Fish = { swim: () => void }
-type Bird = { fly: () => void }
+type Fish = { swim: () => void };
+type Bird = { fly: () => void };
 type Human = { swim?: () => void; fly?: () => void };
 
 function move(animal: Fish | Bird | Human) {
   if ("swim" in animal) {
-      return animal // Fish | Human
+    return animal; // Fish | Human
   } else {
-      return animal // Bird | Human
+    return animal; // Bird | Human
   }
 }
 
-class PetFish implements Fish { swim() {} }
-class PetBird implements Bird { fly() {} }
-const fish = new PetFish()
-const bird = new PetBird()
+// Type Predicates -------------------------
+
+class PetFish implements Fish {
+  swim() {}
+}
+class PetBird implements Bird {
+  fly() {}
+}
+const fisho = new PetFish();
+const birdo = new PetBird();
 
 // pet is Fish allows TS to know the return type is Fish[]
-const isFish = (pet: Fish | Bird): pet is Fish => 'swim' in pet
-const onlyFishes = [fish, bird].filter(isFish) 
+const isFish = (pet: Fish | Bird): pet is Fish => "swim" in pet;
+const onlyFishes = [fisho, birdo].filter(isFish);
+
+// Default Never --------------------------
+
+type Circle = { kind: "circle"; radius: number };
+type Square = { kind: "square"; side: number };
+type Triangle = { kind: "triangle"; side: number }; // equilateral
+
+type Shape = Circle | Square | Triangle;
+
+function getArea(shape: Shape) {
+  switch (shape.kind) {
+    case "circle":
+      return Math.PI * shape.radius ** 2;
+    case "square":
+      return shape.side ** 2;
+    case "triangle":
+      return (Math.sqrt(3) / 4) * shape.side;
+    default:
+      const _exhaustiveCheck: never = shape;
+      return _exhaustiveCheck;
+  }
+}
+
+// Function Overload ----------------------
+
+interface Colorful {
+  color: string;
+}
+
+interface ColorfulCircle extends Colorful, Circle {}
+// type ColorfulCircle = Colorful & Circle
+
+const cc: ColorfulCircle = {
+  kind: "circle",
+  color: "red",
+  radius: 42,
+};
+
+type Maybe<Type> = Type | null | undefined;
+type OneOrMany<Type> = Type | Type[];
+type MaybeOneOrMany<T> = Maybe<OneOrMany<T>>;
+
+type Either2Dor3D = [number, number, number?];
+
+// Generics --------------------------------
+
+type Identity<T> = (arg: T) => T;
+
+const indentityString: Identity<string> = (arg) => arg;
+
+type GetValue<T, K extends keyof T> = (obj: T, key: K) => T[K];
+
+const colorfulCircleSelector: GetValue<ColorfulCircle, keyof ColorfulCircle> = (
+  obj,
+  key
+) => obj[key];
+
+const circleKind = colorfulCircleSelector(cc, "kind");
+
+// Class as Generics -------------------------
+
+class BeeKeeper {
+  hasMask: boolean = true;
+}
+class ZooKeeper {
+  nametag: string = "Mike";
+}
+class Animal {
+  numLegs: number = 4;
+}
+
+class Bee extends Animal {
+  keeper: BeeKeeper = new BeeKeeper();
+}
+class Lion extends Animal {
+  keeper: ZooKeeper = new ZooKeeper();
+}
+
+function createAnimal<T extends Animal>(c: new () => T): T {
+  return new c();
+}
+
+createAnimal(Lion).keeper.nametag;
+createAnimal(Bee).keeper.hasMask;
