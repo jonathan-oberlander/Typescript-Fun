@@ -358,3 +358,39 @@ function createAnimal<T extends Animal>(c: new () => T): T {
 
 createAnimal(Lion).keeper.nametag;
 createAnimal(Bee).keeper.hasMask;
+
+// --------------------------------------
+
+type Maybe<T> = T | null
+
+type Opened<Type> = Type extends Object ? Partial<Type> & {
+  [k in string]: string | number
+} : never
+
+interface Traits {
+  age: Maybe<number>
+  name: Maybe<string>
+}
+
+class Person implements Traits {
+  age = null
+  name = null
+
+  constructor(traits: Partial<Traits>) {
+    Object.assign(this, traits)
+  }
+}
+
+const p: Opened<Traits> = {
+  age: 26,
+  name: "Mary",
+  occupation: "developer"
+}
+
+const mary = new Person(p)
+const noone = new Person({})
+
+const logger = (c: any) => console.log(c, '\nInstance of Person:', c instanceof Person)
+
+logger(mary)
+logger(noone)
